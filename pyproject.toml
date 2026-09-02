@@ -1,0 +1,19 @@
+[project]
+name = "typer-app"
+version = "1.0.0"
+description = "Typer: types text into any window with human-like timing, macros, presets and CSV placeholders."
+requires-python = ">=3.11"
+dependencies = [
+    "pywebview==6.2.1",
+    "pythonnet==3.1.0",
+    "pynput==1.8.2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pyinstaller==6.22.1"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = ["integration: needs an interactive desktop session and sends real input"]
+addopts = "-m 'not integration'"
