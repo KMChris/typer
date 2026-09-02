@@ -78,7 +78,15 @@ def main() -> None:
     directory = data_dir()
     configure_logging(directory)
     log.info("%s %s starting, data in %s", APP_NAME, __version__, directory)
+    try:
+        run(directory)
+    except Exception:
+        # The frozen build has no console, so the log file is the only place a crash can be seen.
+        log.exception("fatal error")
+        raise
 
+
+def run(directory: Path) -> None:
     store = Store(directory)
     api = Api(store)
     theme = api.effective_theme(system_prefers_dark())
