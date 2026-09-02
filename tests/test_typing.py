@@ -112,6 +112,16 @@ def test_pause_and_resume(sender):
     assert sender.chars == "abcdefghijklmnopqrstuvwxyz"
 
 
+def test_skip_abandons_the_job_without_cancelling(sender):
+    control = Control()
+    control.skip()
+    assert TypingJob("abc", settings(), sender, control).run() is False
+    assert control.skipped and not control.cancelled
+    control.clear_skip()
+    assert TypingJob("abc", settings(), sender, control).run() is True
+    assert sender.chars == "abc"
+
+
 def test_typos_are_corrected(sender, control):
     TypingJob("A", settings(char_delay_ms=10, typo_pct=100), sender, control, rng=random.Random(0)).run()
     assert [op[0] for op in sender.ops] == ["char", "key", "char"]

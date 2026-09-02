@@ -72,7 +72,7 @@ class InstantControl(Control):
 
     def wait(self, seconds: float) -> bool:
         self.waits.append(seconds)
-        return not self.cancelled
+        return not (self.cancelled or self.skipped)
 
 
 @pytest.fixture

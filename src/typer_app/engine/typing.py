@@ -98,10 +98,15 @@ class TypingSettings:
 
 
 class Control:
-    """Cancellation and pause shared by everything that runs in a session."""
+    """Cancellation, skipping and pause shared by everything that runs in a session.
+
+    `cancel()` ends the whole job; `skip()` only abandons the current piece of work
+    (the runner decides what comes next and calls `clear_skip()`).
+    """
 
     def __init__(self) -> None:
         self._cancel = threading.Event()
+        self._skip = threading.Event()
         self._resume = threading.Event()
         self._resume.set()
 
@@ -110,16 +115,27 @@ class Control:
         return self._cancel.is_set()
 
     @property
+    def skipped(self) -> bool:
+        return self._skip.is_set()
+
+    @property
     def paused(self) -> bool:
         return not self._resume.is_set() and not self._cancel.is_set()
 
     def reset(self) -> None:
         self._cancel.clear()
+        self._skip.clear()
         self._resume.set()
 
     def cancel(self) -> None:
         self._cancel.set()
         self._resume.set()
+
+    def skip(self) -> None:
+        self._skip.set()
+
+    def clear_skip(self) -> None:
+        self._skip.clear()
 
     def pause(self) -> None:
         if not self._cancel.is_set():
@@ -129,13 +145,13 @@ class Control:
         self._resume.set()
 
     def wait(self, seconds: float) -> bool:
-        """Sleep, blocking while paused. Returns False as soon as the job is cancelled."""
+        """Sleep, blocking while paused. Returns False as soon as the work is cancelled or skipped."""
         deadline = time.monotonic() + max(0.0, seconds)
         while True:
-            if self._cancel.is_set():
+            if self._cancel.is_set() or self._skip.is_set():
                 return False
             if not self._resume.is_set():
-                self._resume.wait()
+                self._resume.wait(0.05)
                 continue
             remaining = deadline - time.monotonic()
             if remaining <= 0:

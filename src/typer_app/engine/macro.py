@@ -304,8 +304,11 @@ def events_to_steps(
                 steps.append(Step("mouse_scroll", x=event.x, y=event.y, dx=event.dx, dy=event.dy))
     flush_text()
 
-    stop_id = combo_id(parse_combo(stop_hotkey)) if stop_hotkey else ""
-    while steps and (steps[-1].kind == "wait" or (stop_id and steps[-1].kind == "key" and steps[-1].key == stop_id)):
+    # Trailing waits, the stop hotkey and the window switch back to Typer are not part of the macro.
+    trailing_keys = {"alt+tab", "alt+escape"}
+    if stop_hotkey:
+        trailing_keys.add(combo_id(parse_combo(stop_hotkey)))
+    while steps and (steps[-1].kind == "wait" or (steps[-1].kind == "key" and steps[-1].key in trailing_keys)):
         steps.pop()
     return steps
 
@@ -313,8 +316,15 @@ def events_to_steps(
 class MacroRecorder:
     """Captures keyboard and mouse input through pynput hooks while recording."""
 
-    def __init__(self, ignore_point: Callable[[int, int], bool] | None = None) -> None:
+    def __init__(
+        self,
+        ignore_point: Callable[[int, int], bool] | None = None,
+        ignore_keys: Callable[[], bool] | None = None,
+    ) -> None:
+        # ignore_point: clicks and scrolls at that screen position are dropped (used for Typer's own window).
+        # ignore_keys: while it returns True, non-modifier keys are dropped (typing inside Typer itself).
         self._ignore_point = ignore_point
+        self._ignore_keys = ignore_keys
         self._events: list[RawEvent] = []
         self._modifiers: set[str] = set()
         self._t0 = 0.0
@@ -377,6 +387,8 @@ class MacroRecorder:
             return
         if is_modifier(name):
             self._modifiers.add(name)
+        elif self._ignore_keys and self._ignore_keys():
+            return
         self._events.append(RawEvent(self._now(), "key_down", key=name))
 
     def _on_release(self, key) -> None:
@@ -385,6 +397,8 @@ class MacroRecorder:
             return
         if is_modifier(name):
             self._modifiers.discard(name)
+        elif self._ignore_keys and self._ignore_keys():
+            return
         self._events.append(RawEvent(self._now(), "key_up", key=name))
 
     def _on_click(self, x, y, button, pressed) -> None:

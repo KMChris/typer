@@ -210,7 +210,9 @@ class WindowsSender:
     def text_char(self, ch: str, method: str = "unicode") -> None:
         if method == "keys":
             scanned = scan_char(ch)
-            if scanned is not None:
+            # Characters that need AltGr (Ctrl+Alt+key, e.g. Polish diacritics) fall back to Unicode:
+            # Alt chords collide with system and overlay hotkeys (Alt+Z opens the NVIDIA overlay).
+            if scanned is not None and not scanned[1] & 0x06:
                 vk, state = scanned
                 _send(_wrapped(vk, False, _modifier_names(state)))
                 return
