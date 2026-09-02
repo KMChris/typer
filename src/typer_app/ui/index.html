@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light dark">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Typer</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<svg class="sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-keyboard" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></symbol>
+  <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M6 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L7.5 3.64A1 1 0 0 0 6 4.5z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor" stroke="none"/><rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect width="14" height="14" x="5" y="5" rx="2" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></symbol>
+  <symbol id="i-window" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M10 4v4M2 8h20M6 4v4"/></symbol>
+  <symbol id="i-csv" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 13h2M14 13h2M8 17h2M14 17h2"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7M12 19V5"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></symbol>
+  <symbol id="i-record" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-pointer" viewBox="0 0 24 24"><path d="M12.586 12.586 19 19"/><path d="M3.688 3.037a.497.497 0 0 0-.651.651l6.5 15.999a.501.501 0 0 0 .947-.062l1.569-6.083a2 2 0 0 1 1.448-1.479l6.124-1.579a.5.5 0 0 0 .063-.947z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-type" viewBox="0 0 24 24"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></symbol>
+  <symbol id="i-crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M22 12h-4M6 12H2M12 6V2M12 22v-4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+  <symbol id="i-scroll" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="7"/><path d="M12 6v4"/></symbol>
+  <symbol id="i-eraser" viewBox="0 0 24 24"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7M5 11l9 9"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><rect width="20" height="12" x="2" y="6" rx="3"/><path d="M6 12h.01M10 12h.01M14 12h.01M18 12h.01"/></symbol>
+  <symbol id="i-hand" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-4 0v1a2 2 0 0 0-4 0v2a2 2 0 0 0-4 0v6a7 7 0 0 0 14 0v-4a2 2 0 0 0-2 0Z"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+</svg>
+
+<div class="app" id="app">
+  <nav class="rail">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">
+        <svg viewBox="0 0 32 32"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c6cff"/><stop offset="1" stop-color="#2ec4e6"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lg)"/><path d="M9 10h14M16 10v12" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><rect x="20" y="17" width="2.6" height="6" rx="1" fill="#fff" class="logo-caret"/></svg>
+      </span>
+      <span class="brand-name">Typer</span>
+    </div>
+    <div class="rail-items">
+      <button class="rail-item is-active" data-view="typer"><svg><use href="#i-keyboard"/></svg><span data-i18n="nav.typer">Typer</span></button>
+      <button class="rail-item" data-view="macros"><svg><use href="#i-zap"/></svg><span data-i18n="nav.macros">Makra</span></button>
+      <button class="rail-item" data-view="presets"><svg><use href="#i-bookmark"/></svg><span data-i18n="nav.presets">Presety</span></button>
+      <button class="rail-item" data-view="settings"><svg><use href="#i-sliders"/></svg><span data-i18n="nav.settings">Ustawienia</span></button>
+    </div>
+    <div class="rail-footer">
+      <button class="icon-btn" id="theme-toggle" data-i18n-title="settings.theme"><svg><use href="#i-moon"/></svg></button>
+      <span class="version" id="version"></span>
+    </div>
+  </nav>
+
+  <main class="content">
+    <!-- ===================== TYPER ===================== -->
+    <section class="view is-active" id="view-typer">
+      <header class="topbar">
+        <div class="target">
+          <span class="target-label" data-i18n="target.label">Wpisz do</span>
+          <button class="target-btn" id="target-btn" popovertarget="target-pop">
+            <span class="target-dot" id="target-dot"></span>
+            <span class="target-main">
+              <strong id="target-title"></strong>
+              <small id="target-sub"></small>
+            </span>
+            <svg class="chev"><use href="#i-chevron"/></svg>
+          </button>
+          <div class="pop target-pop" id="target-pop" popover>
+            <div class="pop-head">
+              <span data-i18n="target.pick">Wybierz okno docelowe</span>
+              <button class="icon-btn small" id="target-refresh" data-i18n-title="target.refresh"><svg><use href="#i-refresh"/></svg></button>
+            </div>
+            <div class="pop-list" id="target-list"></div>
+          </div>
+        </div>
+        <div class="hotkey-hints" id="hotkey-hints"></div>
+      </header>
+
+      <div class="typer-grid">
+        <div class="col-main">
+          <div class="card editor">
+            <textarea id="text" class="editor-area" spellcheck="false" data-i18n-placeholder="editor.placeholder"></textarea>
+            <div class="editor-foot">
+              <div class="chips" id="chips"></div>
+              <div class="editor-meta">
+                <span id="meta-chars"></span>
+                <span class="sep"></span>
+                <span id="meta-estimate"></span>
+                <button class="icon-btn small" id="btn-clear" data-i18n-title="editor.clear"><svg><use href="#i-eraser"/></svg></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card csv" id="csv-card">
+            <div class="csv-empty" id="csv-empty">
+              <svg class="csv-icon"><use href="#i-csv"/></svg>
+              <span data-i18n="csv.empty"></span>
+              <button class="btn" id="csv-load"><svg><use href="#i-upload"/></svg><span data-i18n="csv.load">Wczytaj CSV</span></button>
+            </div>
+            <div class="csv-loaded" id="csv-loaded" hidden>
+              <div class="csv-head">
+                <svg class="csv-icon"><use href="#i-csv"/></svg>
+                <div class="csv-title"><strong id="csv-name"></strong><small id="csv-count"></small></div>
+                <span class="grow"></span>
+                <button class="btn small" id="csv-preview-toggle"><svg><use href="#i-eye"/></svg><span data-i18n="csv.preview">Podgląd</span></button>
+                <button class="btn small ghost" id="csv-remove"><svg><use href="#i-x"/></svg><span data-i18n="csv.remove">Usuń</span></button>
+              </div>
+              <div class="csv-columns-label" data-i18n="csv.columns"></div>
+              <div class="chips" id="csv-columns"></div>
+              <label class="switch" id="use-rows-field">
+                <input type="checkbox" data-plan="use_csv_rows">
+                <span class="switch-track"></span>
+                <span class="switch-label" data-i18n="csv.use_rows"></span>
+              </label>
+              <div class="csv-preview" id="csv-preview" hidden>
+                <div class="csv-preview-nav">
+                  <button class="icon-btn small" id="csv-prev"><svg><use href="#i-left"/></svg></button>
+                  <span id="csv-row-label"></span>
+                  <button class="icon-btn small" id="csv-next"><svg><use href="#i-right"/></svg></button>
+                </div>
+                <pre id="csv-preview-text"></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="col-side">
+          <div class="card">
+            <h3 class="card-title"><svg><use href="#i-clock"/></svg><span data-i18n="tempo.title">Tempo</span></h3>
+            <label class="field">
+              <span class="field-label"><span data-i18n="tempo.delay"></span><output id="out-delay"></output></span>
+              <input type="range" min="0" max="300" step="1" data-plan="settings.char_delay_ms">
+            </label>
+            <label class="field">
+              <span class="field-label"><span data-i18n="tempo.jitter"></span><output id="out-jitter"></output></span>
+              <input type="range" min="0" max="100" step="5" data-plan="settings.jitter_pct">
+            </label>
+            <label class="field">
+              <span class="field-label"><span data-i18n="tempo.typos"></span><output id="out-typos"></output></span>
+              <input type="range" min="0" max="10" step="0.5" data-plan="settings.typo_pct">
+            </label>
+            <details class="sub">
+              <summary data-i18n="tempo.pauses">Dodatkowe pauzy</summary>
+              <div class="grid-3">
+                <label class="field"><span class="field-label small" data-i18n="tempo.word"></span><span class="unit-input"><input class="input" type="number" min="0" max="60000" step="10" data-plan="settings.word_pause_ms"><span data-i18n="units.ms">ms</span></span></label>
+                <label class="field"><span class="field-label small" data-i18n="tempo.punct"></span><span class="unit-input"><input class="input" type="number" min="0" max="60000" step="10" data-plan="settings.punct_pause_ms"><span data-i18n="units.ms">ms</span></span></label>
+                <label class="field"><span class="field-label small" data-i18n="tempo.newline"></span><span class="unit-input"><input class="input" type="number" min="0" max="60000" step="10" data-plan="settings.newline_pause_ms"><span data-i18n="units.ms">ms</span></span></label>
+              </div>
+            </details>
+            <label class="switch">
+              <input type="checkbox" data-plan="settings.instant">
+              <span class="switch-track"></span>
+              <span class="switch-label"><span data-i18n="tempo.instant"></span><small data-i18n="tempo.instant_hint"></small></span>
+            </label>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title"><svg><use href="#i-key"/></svg><span data-i18n="keys.title">Klawisze</span></h3>
+            <div class="field">
+              <span class="field-label" data-i18n="keys.newline"></span>
+              <div class="seg" role="radiogroup">
+                <label><input type="radio" name="newline" value="enter" data-plan="settings.newline_mode"><span data-i18n="keys.newline.enter">Enter</span></label>
+                <label><input type="radio" name="newline" value="shift_enter" data-plan="settings.newline_mode"><span data-i18n="keys.newline.shift">Shift+Enter</span></label>
+                <label><input type="radio" name="newline" value="ctrl_enter" data-plan="settings.newline_mode"><span data-i18n="keys.newline.ctrl">Ctrl+Enter</span></label>
+                <label><input type="radio" name="newline" value="none" data-plan="settings.newline_mode"><span data-i18n="keys.newline.none">pomiń</span></label>
+              </div>
+            </div>
+            <label class="field">
+              <span class="field-label" data-i18n="keys.final"></span>
+              <select class="input" data-plan="settings.final_key">
+                <option value="" data-i18n="keys.final.none">nic</option>
+                <option value="enter">Enter</option>
+                <option value="shift+enter">Shift+Enter</option>
+                <option value="ctrl+enter">Ctrl+Enter</option>
+                <option value="tab">Tab</option>
+              </select>
+            </label>
+            <label class="switch">
+              <input type="checkbox" data-plan="settings.input_method" data-on="keys" data-off="unicode">
+              <span class="switch-track"></span>
+              <span class="switch-label"><span data-i18n="keys.compat"></span><small data-i18n="keys.compat_hint"></small></span>
+            </label>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title"><svg><use href="#i-refresh"/></svg><span data-i18n="repeat.title">Powtarzanie</span></h3>
+            <div class="grid-2">
+              <label class="field"><span class="field-label small" data-i18n="repeat.count"></span><input class="input" type="number" min="1" max="100000" data-plan="repeat_count"></label>
+              <label class="field"><span class="field-label small" data-i18n="repeat.interval"></span><span class="unit-input"><input class="input" type="number" min="0" max="3600000" step="100" data-plan="repeat_interval_ms"><span data-i18n="units.ms">ms</span></span></label>
+            </div>
+            <label class="field"><span class="field-label small" data-i18n="repeat.countdown"></span><span class="unit-input"><input class="input" type="number" min="0" max="120" step="1" data-plan="countdown_s"><span data-i18n="units.s">s</span></span></label>
+            <div class="field">
+              <span class="field-label small" data-i18n="repeat.split"></span>
+              <div class="seg" role="radiogroup">
+                <label><input type="radio" name="split" value="whole" data-plan="split"><span data-i18n="split.whole"></span></label>
+                <label><input type="radio" name="split" value="lines" data-plan="split"><span data-i18n="split.lines"></span></label>
+                <label><input type="radio" name="split" value="paragraphs" data-plan="split"><span data-i18n="split.paragraphs"></span></label>
+              </div>
+              <small class="field-hint" data-i18n="repeat.split_hint"></small>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <footer class="actionbar">
+        <button class="btn primary xl" id="btn-start"><svg><use href="#i-play"/></svg><span data-i18n="action.start">Start</span><kbd id="kbd-start"></kbd></button>
+        <button class="btn xl" id="btn-pause" disabled><svg><use href="#i-pause"/></svg><span id="btn-pause-label" data-i18n="action.pause">Pauza</span></button>
+        <button class="btn xl danger-ghost" id="btn-stop" disabled><svg><use href="#i-stop"/></svg><span data-i18n="action.stop">Stop</span><kbd id="kbd-stop"></kbd></button>
+        <div class="stepper">
+          <button class="btn" id="btn-prev" data-i18n-title="action.prev"><svg><use href="#i-left"/></svg><kbd id="kbd-prev"></kbd></button>
+          <span class="position" id="position" data-i18n-title="position.title"></span>
+          <button class="btn" id="btn-next" data-i18n-title="action.next"><kbd id="kbd-next"></kbd><svg><use href="#i-right"/></svg></button>
+        </div>
+        <div class="progress" id="progress">
+          <div class="progress-track"><div class="progress-bar" id="progress-bar"></div></div>
+          <div class="progress-text"><span id="status-text"></span><span id="status-sub"></span></div>
+        </div>
+        <button class="btn ghost" id="btn-save-preset"><svg><use href="#i-bookmark"/></svg><span data-i18n="action.save_preset">Zapisz preset</span></button>
+      </footer>
+    </section>
+
+    <!-- ===================== MACROS ===================== -->
+    <section class="view" id="view-macros">
+      <header class="topbar">
+        <div class="titles"><h2 data-i18n="macros.title">Makra</h2><p data-i18n="macros.subtitle"></p></div>
+        <button class="btn primary" id="macro-new"><svg><use href="#i-plus"/></svg><span data-i18n="macros.new">Nowe makro</span></button>
+      </header>
+      <div class="macros-grid">
+        <div class="card list" id="macro-list"></div>
+        <div class="card macro-editor">
+          <div class="empty" id="macro-empty"><svg><use href="#i-zap"/></svg><p data-i18n="macros.empty"></p></div>
+          <div id="macro-form" hidden>
+            <div class="row">
+              <label class="field grow"><span class="field-label" data-i18n="macros.name"></span><input class="input" id="macro-name" maxlength="60"></label>
+              <label class="field"><span class="field-label" data-i18n="macros.hotkey"></span><input class="input hotkey-input" id="macro-hotkey" readonly data-i18n-placeholder="macros.hotkey_hint"></label>
+              <label class="field narrow"><span class="field-label" data-i18n="macros.repeat"></span><input class="input" type="number" id="macro-repeat" min="1" max="10000"></label>
+              <label class="field narrow"><span class="field-label" data-i18n="macros.interval"></span><input class="input" type="number" id="macro-interval" min="0" step="100"></label>
+            </div>
+            <div class="steps-head">
+              <h4><span data-i18n="macros.steps">Kroki</span> <span class="badge" id="macro-status" hidden data-i18n="macros.unsaved"></span></h4>
+              <div class="steps-actions">
+                <button class="btn small" id="step-add" popovertarget="step-menu"><svg><use href="#i-plus"/></svg><span data-i18n="macros.add_step">Dodaj krok</span></button>
+                <div class="pop menu" id="step-menu" popover>
+                  <button data-kind="text"><svg><use href="#i-type"/></svg><span data-i18n="step.text"></span></button>
+                  <button data-kind="key"><svg><use href="#i-key"/></svg><span data-i18n="step.key"></span></button>
+                  <button data-kind="wait"><svg><use href="#i-clock"/></svg><span data-i18n="step.wait"></span></button>
+                  <button data-kind="mouse_move"><svg><use href="#i-pointer"/></svg><span data-i18n="step.mouse_move"></span></button>
+                  <button data-kind="mouse_click"><svg><use href="#i-pointer"/></svg><span data-i18n="step.mouse_click"></span></button>
+                  <button data-kind="mouse_down"><svg><use href="#i-hand"/></svg><span data-i18n="step.mouse_down"></span></button>
+                  <button data-kind="mouse_up"><svg><use href="#i-hand"/></svg><span data-i18n="step.mouse_up"></span></button>
+                  <button data-kind="mouse_scroll"><svg><use href="#i-scroll"/></svg><span data-i18n="step.mouse_scroll"></span></button>
+                  <button data-kind="focus"><svg><use href="#i-window"/></svg><span data-i18n="step.focus"></span></button>
+                </div>
+                <button class="btn small" id="macro-record"><svg><use href="#i-record"/></svg><span id="macro-record-label" data-i18n="macros.record">Nagraj</span></button>
+              </div>
+            </div>
+            <div class="recording-banner" id="recording-banner" hidden>
+              <span class="rec-dot"></span>
+              <div><strong data-i18n="macros.recording"></strong><br><small id="recording-hint"></small></div>
+              <button class="btn small" id="recording-stop"><svg><use href="#i-stop"/></svg><span data-i18n="macros.record_stop"></span></button>
+            </div>
+            <ol class="steps" id="steps"></ol>
+            <div class="editor-actions">
+              <button class="btn primary" id="macro-run"><svg><use href="#i-play"/></svg><span data-i18n="macros.run">Uruchom</span></button>
+              <button class="btn" id="macro-save"><svg><use href="#i-check"/></svg><span data-i18n="macros.save">Zapisz</span></button>
+              <span class="grow"></span>
+              <button class="btn danger-ghost" id="macro-delete"><svg><use href="#i-trash"/></svg><span data-i18n="macros.delete">Usuń</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== PRESETS ===================== -->
+    <section class="view" id="view-presets">
+      <header class="topbar">
+        <div class="titles"><h2 data-i18n="presets.title">Presety</h2><p data-i18n="presets.subtitle"></p></div>
+        <div class="topbar-actions">
+          <button class="btn" id="preset-import"><svg><use href="#i-upload"/></svg><span data-i18n="presets.import"></span></button>
+          <button class="btn" id="preset-export"><svg><use href="#i-download"/></svg><span data-i18n="presets.export"></span></button>
+          <button class="btn primary" id="preset-save"><svg><use href="#i-bookmark"/></svg><span data-i18n="presets.save_current"></span></button>
+        </div>
+      </header>
+      <div class="scroll">
+        <div class="empty" id="preset-empty"><svg><use href="#i-bookmark"/></svg><p data-i18n="presets.empty"></p></div>
+        <div class="preset-grid" id="preset-grid"></div>
+      </div>
+    </section>
+
+    <!-- ===================== SETTINGS ===================== -->
+    <section class="view" id="view-settings">
+      <header class="topbar"><div class="titles"><h2 data-i18n="settings.title">Ustawienia</h2></div></header>
+      <div class="scroll settings">
+        <div class="card">
+          <h3 class="card-title"><svg><use href="#i-sun"/></svg><span data-i18n="settings.appearance"></span></h3>
+          <div class="setting-row">
+            <span data-i18n="settings.theme"></span>
+            <div class="seg" role="radiogroup">
+              <label><input type="radio" name="theme" value="system"><span data-i18n="theme.system"></span></label>
+              <label><input type="radio" name="theme" value="light"><span data-i18n="theme.light"></span></label>
+              <label><input type="radio" name="theme" value="dark"><span data-i18n="theme.dark"></span></label>
+            </div>
+          </div>
+          <div class="setting-row">
+            <span data-i18n="settings.language"></span>
+            <div class="seg" role="radiogroup">
+              <label><input type="radio" name="language" value="pl"><span>Polski</span></label>
+              <label><input type="radio" name="language" value="en"><span>English</span></label>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="card-title"><svg><use href="#i-key"/></svg><span data-i18n="settings.hotkeys"></span></h3>
+          <p class="hint" data-i18n="settings.hotkeys_hint"></p>
+          <div class="setting-row"><span data-i18n="hotkey.start_pause"></span><span class="hotkey-cell"><input class="input hotkey-input" data-hotkey="start_pause" readonly><em class="hotkey-status" data-hotkey="start_pause"></em></span></div>
+          <div class="setting-row"><span data-i18n="hotkey.stop_reset"></span><span class="hotkey-cell"><input class="input hotkey-input" data-hotkey="stop_reset" readonly><em class="hotkey-status" data-hotkey="stop_reset"></em></span></div>
+          <div class="setting-row"><span data-i18n="hotkey.prev"></span><span class="hotkey-cell"><input class="input hotkey-input" data-hotkey="prev" readonly><em class="hotkey-status" data-hotkey="prev"></em></span></div>
+          <div class="setting-row"><span data-i18n="hotkey.next"></span><span class="hotkey-cell"><input class="input hotkey-input" data-hotkey="next" readonly><em class="hotkey-status" data-hotkey="next"></em></span></div>
+          <div class="setting-row"><span data-i18n="hotkey.record"></span><span class="hotkey-cell"><input class="input hotkey-input" data-hotkey="record" readonly><em class="hotkey-status" data-hotkey="record"></em></span></div>
+        </div>
+        <div class="card">
+          <h3 class="card-title"><svg><use href="#i-sliders"/></svg><span data-i18n="settings.behaviour"></span></h3>
+          <label class="switch">
+            <input type="checkbox" id="escape-stops">
+            <span class="switch-track"></span>
+            <span class="switch-label"><span data-i18n="settings.escape_stops"></span><small data-i18n="settings.escape_stops_hint"></small></span>
+          </label>
+        </div>
+        <div class="card">
+          <h3 class="card-title"><svg><use href="#i-folder"/></svg><span data-i18n="settings.data"></span></h3>
+          <div class="setting-row">
+            <span><span data-i18n="settings.data_folder"></span><br><code id="data-dir"></code></span>
+            <button class="btn small" id="open-folder"><svg><use href="#i-folder"/></svg><span data-i18n="settings.open_folder"></span></button>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="card-title"><svg><use href="#i-info"/></svg><span data-i18n="settings.about"></span></h3>
+          <p class="hint" id="about-text"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="countdown" id="countdown" hidden>
+  <div class="countdown-card">
+    <div class="countdown-num" id="countdown-num">3</div>
+    <div class="countdown-text"><span data-i18n="countdown.text"></span><br><strong id="countdown-target"></strong></div>
+    <button class="btn" id="countdown-stop"><svg><use href="#i-stop"/></svg><span data-i18n="action.stop">Stop</span></button>
+  </div>
+</div>
+
+<dialog class="dialog" id="dialog">
+  <form method="dialog">
+    <h3 id="dialog-title"></h3>
+    <p id="dialog-message"></p>
+    <input class="input" id="dialog-input" type="text" maxlength="80" autocomplete="off">
+    <div class="dialog-actions">
+      <button type="button" class="btn" id="dialog-cancel" data-i18n="dialog.cancel">Anuluj</button>
+      <button type="submit" class="btn primary" id="dialog-ok" value="ok">OK</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
