@@ -9,6 +9,7 @@ from __future__ import annotations
 import random
 import threading
 import time
+import unicodedata
 from dataclasses import asdict, dataclass
 from typing import Callable, Protocol
 
@@ -26,12 +27,24 @@ BACKSPACE = KeyCombo("backspace")
 TAB = KeyCombo("tab")
 PASTE = KeyCombo("v", frozenset({"ctrl"}))
 
+# Human typos. A slip is noticed either at once or after a few more characters of the same word;
+# then Backspace goes back to the mistake and the rest of the word is typed again.
+TYPO_LOOKAHEAD = 8          # at most this many characters of a word are typed before a slip is noticed
+TYPO_IMMEDIATE_P = 0.35     # chance that the wrong key is noticed right away
+TYPO_WORD_END_P = 0.5       # otherwise: chance that the word is finished first (else noticed inside it)
+TYPO_RETRY_P = 0.15         # chance of slipping again while retyping the correction
+TYPO_MAX_ATTEMPTS = 3
+TYPO_NOTICE_S = 0.08        # thinking time before the first Backspace, on top of the character delay
+TYPO_KINDS = (("neighbour", 0.6), ("transpose", 0.15), ("omit", 0.1), ("double", 0.15))
+TYPO_COST_STROKES = 8.5     # average extra keystrokes per slip (wrong ones, Backspaces, retyping)
+
 _QWERTY_NEIGHBOURS = {
     "q": "wa", "w": "qes", "e": "wrd", "r": "etf", "t": "ryg", "y": "tuh", "u": "yij", "i": "uok",
     "o": "ipl", "p": "ol", "a": "qsz", "s": "adwx", "d": "sfec", "f": "dgrv", "g": "fhtb", "h": "gjyn",
     "j": "hkum", "k": "jli", "l": "ko", "z": "xa", "x": "zcs", "c": "xvd", "v": "cbf", "b": "vng",
     "n": "bmh", "m": "nj",
 }
+_BARE_LETTERS = {"ł": "l", "Ł": "L"}  # accented letters that NFD does not decompose
 
 
 class Sender(Protocol):
@@ -186,13 +199,66 @@ def char_delay(ch: str, settings: TypingSettings, rng: random.Random) -> float:
     return base + extra / 1000.0
 
 
+def bare_letter(ch: str) -> str:
+    """The letter without its accent ("ą" -> "a"): what comes out when AltGr is missed."""
+    if ch in _BARE_LETTERS:
+        return _BARE_LETTERS[ch]
+    decomposed = unicodedata.normalize("NFD", ch)
+    return decomposed[0] if decomposed else ch
+
+
 def typo_for(ch: str, rng: random.Random) -> str | None:
-    """A plausible neighbouring key for a letter, keeping its case."""
-    neighbours = _QWERTY_NEIGHBOURS.get(ch.lower())
+    """A plausible wrong key for a letter, keeping its case: a keyboard neighbour, or the bare
+    letter when the right one needs AltGr (Polish diacritics)."""
+    bare = bare_letter(ch)
+    neighbours = _QWERTY_NEIGHBOURS.get(bare.lower())
     if not neighbours:
         return None
-    wrong = rng.choice(neighbours)
+    wrong = bare.lower() if bare != ch and rng.random() < 0.6 else rng.choice(neighbours)
     return wrong.upper() if ch.isupper() else wrong
+
+
+def burst_chance(typo_pct: float) -> float:
+    """Chance that a character typed right after a slip is wrong as well (a run of typos)."""
+    return min(0.4, max(0.1, 4 * typo_pct / 100))
+
+
+def corrupt(text: str, rng: random.Random, burst: float) -> str:
+    """`text` as a hurried typist enters it. The first character is always wrong and each later one
+    with probability `burst`: a neighbouring key, two characters swapped, one dropped or doubled."""
+    out: list[str] = []
+    index = 0
+    while index < len(text):
+        ch = text[index]
+        if index and rng.random() >= burst:
+            out.append(ch)
+            index += 1
+            continue
+        wrong = typo_for(ch, rng)
+        following = text[index + 1] if index + 1 < len(text) else ""
+        kinds = [(kind, weight) for kind, weight in TYPO_KINDS
+                 if (kind != "neighbour" or wrong is not None)
+                 and (kind != "transpose" or (following and following != ch))
+                 and (kind != "omit" or following)]
+        kind = rng.choices([kind for kind, _ in kinds], [weight for _, weight in kinds])[0]
+        if kind == "neighbour":
+            out.append(wrong)
+        elif kind == "transpose":
+            out.extend((following, ch))
+            index += 1
+        elif kind == "double":
+            out.extend((ch, ch))
+        index += 1  # "omit" adds nothing
+    return "".join(out)
+
+
+def common_prefix_len(a: str, b: str) -> int:
+    length = 0
+    for x, y in zip(a, b):
+        if x != y:
+            break
+        length += 1
+    return length
 
 
 def estimate_seconds(text: str, settings: TypingSettings) -> float:
@@ -211,7 +277,7 @@ def estimate_seconds(text: str, settings: TypingSettings) -> float:
     total += sum(text.count(p) for p in PUNCTUATION) * settings.punct_pause_ms / 1000.0
     if settings.typo_pct:
         letters = sum(1 for c in text if c.isalpha())
-        total += letters * settings.typo_pct / 100.0 * base * 2.6
+        total += letters * settings.typo_pct / 100.0 * (base * TYPO_COST_STROKES + TYPO_NOTICE_S)
     return total
 
 
@@ -233,6 +299,7 @@ class TypingJob:
         self.control = control
         self.on_progress = on_progress or (lambda done, total: None)
         self.rng = rng or random.Random()
+        self._burst = burst_chance(settings.typo_pct)
 
     def run(self) -> bool:
         if not self.control.checkpoint():
@@ -252,38 +319,71 @@ class TypingJob:
     def _run_keystrokes(self) -> bool:
         total = len(self.text)
         method = self.settings.input_method
-        for index, ch in enumerate(self.text):
+        index = 0
+        while index < total:
             if not self.control.checkpoint():
                 return False
-            if ch == "\n":
-                self._newline()
-            elif ch == "\t":
-                self.sender.key_tap(TAB)
-            elif ch.isprintable():
-                if self.settings.typo_pct and self.rng.random() * 100 < self.settings.typo_pct:
-                    if not self._type_with_typo(ch, method):
-                        return False
-                else:
+            ch = self.text[index]
+            if ch.isalpha() and self.settings.typo_pct and self.rng.random() * 100 < self.settings.typo_pct:
+                typed = self._slip(index, method)
+                if typed < 0:
+                    return False
+                index += typed
+            else:
+                if ch == "\n":
+                    self._newline()
+                elif ch == "\t":
+                    self.sender.key_tap(TAB)
+                elif ch.isprintable():
                     self.sender.text_char(ch, method)
-            self.on_progress(index + 1, total)
+                index += 1
+                if not self.control.wait(char_delay(ch, self.settings, self.rng)):
+                    return False
+            self.on_progress(index, total)
+        return True
+
+    def _type_run(self, text: str, method: str) -> bool:
+        for ch in text:
+            self.sender.text_char(ch, method)
             if not self.control.wait(char_delay(ch, self.settings, self.rng)):
                 return False
         return True
 
-    def _type_with_typo(self, ch: str, method: str) -> bool:
-        wrong = typo_for(ch, self.rng)
-        if wrong is None:
-            self.sender.text_char(ch, method)
-            return True
+    def _slip(self, start: int, method: str) -> int:
+        """Type the rest of the word at `start` with a typo in it: notice the slip (at once or a few
+        characters later), Backspace to the mistake and retype the ending. Returns how many source
+        characters were typed, or -1 when interrupted."""
+        end = start
+        while (end < len(self.text) and end - start < TYPO_LOOKAHEAD
+               and self.text[end].isprintable() and not self.text[end].isspace()):
+            end += 1
+        word = self.text[start:end]
+        if len(word) == 1 or self.rng.random() < TYPO_IMMEDIATE_P:
+            noticed = 1
+        elif self.rng.random() < TYPO_WORD_END_P:
+            noticed = len(word)
+        else:
+            noticed = self.rng.randint(2, len(word))
+        target = word[:noticed]
         base = self.settings.char_delay_ms / 1000.0
-        self.sender.text_char(wrong, method)
-        if not self.control.wait(base * 2):
-            return False
-        self.sender.key_tap(BACKSPACE)
-        if not self.control.wait(base):
-            return False
-        self.sender.text_char(ch, method)
-        return True
+        typed = corrupt(target, self.rng, self._burst)
+        attempts = 0
+        while True:
+            if not self._type_run(typed, method):
+                return -1
+            if not self.control.wait(TYPO_NOTICE_S + base * self.rng.uniform(1.5, 3.0)):
+                return -1
+            keep = common_prefix_len(typed, target)
+            for _ in range(len(typed) - keep):
+                self.sender.key_tap(BACKSPACE)
+                if not self.control.wait(base * self.rng.uniform(0.4, 0.8)):
+                    return -1
+            target = target[keep:]
+            attempts += 1
+            if not target or attempts >= TYPO_MAX_ATTEMPTS or self.rng.random() >= TYPO_RETRY_P:
+                break
+            typed = corrupt(target, self.rng, self._burst)
+        return noticed if self._type_run(target, method) else -1
 
     def _run_instant(self) -> bool:
         """Paste line by line through the clipboard, keeping the configured Enter behaviour."""

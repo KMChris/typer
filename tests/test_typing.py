@@ -4,7 +4,7 @@ import time
 
 import pytest
 
-from typer_app.engine.typing import Control, TypingJob, TypingSettings, estimate_seconds
+from typer_app.engine.typing import Control, TypingJob, TypingSettings, burst_chance, corrupt, estimate_seconds, typo_for
 
 
 def settings(**overrides) -> TypingSettings:
@@ -122,12 +122,120 @@ def test_skip_abandons_the_job_without_cancelling(sender):
     assert sender.chars == "abc"
 
 
-def test_typos_are_corrected(sender, control):
-    TypingJob("A", settings(char_delay_ms=10, typo_pct=100), sender, control, rng=random.Random(0)).run()
-    assert [op[0] for op in sender.ops] == ["char", "key", "char"]
-    assert sender.ops[0][1] != "A" and sender.ops[0][1].isupper()
-    assert sender.ops[1] == ("key", "backspace")
-    assert sender.ops[2] == ("char", "A", "unicode")
+def replay(sender) -> str:
+    """The text a target window ends up with after the sender's operations."""
+    out: list[str] = []
+    for op in sender.ops:
+        if op[0] == "char":
+            out.append(op[1])
+        elif op == ("key", "backspace"):
+            out.pop()
+        elif op == ("key", "tab"):
+            out.append("\t")
+        elif op[0] == "key" and op[1].endswith("enter"):
+            out.append("\n")
+    return "".join(out)
+
+
+class ScriptedRandom(random.Random):
+    """random() returns the scripted rolls (then 0.99); every other draw is deterministic."""
+
+    def __init__(self, rolls):
+        super().__init__(0)
+        self.rolls = list(rolls)
+
+    def random(self):
+        return self.rolls.pop(0) if self.rolls else 0.99
+
+    def choices(self, population, weights=None, *, cum_weights=None, k=1):
+        return [population[0]]
+
+    def choice(self, seq):
+        return seq[0]
+
+    def randint(self, a, b):
+        return b
+
+    def uniform(self, a, b):
+        return a
+
+
+TYPO_TEXT = "Zażółć gęślą jaźń, hello world!\nSecond line."
+
+
+def test_typos_always_end_with_the_right_text():
+    from conftest import FakeSender, InstantControl
+
+    fixed_at_once = fixed_later = False
+    for seed in range(60):
+        sender, control = FakeSender(), InstantControl()
+        job = TypingJob(TYPO_TEXT, settings(char_delay_ms=10, typo_pct=100), sender, control, rng=random.Random(seed))
+        assert job.run()
+        assert replay(sender) == TYPO_TEXT
+        assert len(sender.chars) > len(TYPO_TEXT)
+        kinds = sender.kinds
+        for i in range(1, len(kinds) - 1):
+            if sender.ops[i] != ("key", "backspace"):
+                continue
+            if kinds[i - 1] == "char" and kinds[i + 1] == "char":
+                fixed_at_once = True
+            if sender.ops[i + 1] == ("key", "backspace"):
+                fixed_later = True
+    assert fixed_at_once and fixed_later
+
+
+def test_typo_noticed_at_the_end_of_the_word_is_fixed_from_the_mistake(sender, control):
+    # rolls: slip on "h", not noticed at once, noticed after finishing the word
+    rng = ScriptedRandom([0.0, 0.9, 0.0])
+    assert TypingJob("hello world", settings(char_delay_ms=10, typo_pct=50), sender, control, rng=rng).run()
+    assert sender.kinds == ["char"] * 5 + ["key"] * 5 + ["char"] * 11
+    assert sender.chars == "gello" + "hello world"
+    assert sender.keys == ["backspace"] * 5
+    assert replay(sender) == "hello world"
+
+
+def test_typo_noticed_at_once_and_repeated_while_correcting(sender, control):
+    # rolls: slip on "h", noticed at once, slip again while retyping it
+    rng = ScriptedRandom([0.0, 0.1, 0.1])
+    assert TypingJob("hello", settings(char_delay_ms=10, typo_pct=50), sender, control, rng=rng).run()
+    assert sender.ops[:5] == [("char", "g", "unicode"), ("key", "backspace"), ("char", "g", "unicode"),
+                              ("key", "backspace"), ("char", "h", "unicode")]
+    assert replay(sender) == "hello"
+    # thinking pause before the first Backspace, quick Backspace, then normal typing again
+    waits = [w for w in control.waits if w > 0]
+    assert waits[1] > waits[0] > waits[2]
+
+
+def test_corrupt_makes_one_or_several_mistakes():
+    for seed in range(40):
+        single = corrupt("abcdef", random.Random(seed), burst=0.0)
+        assert single != "abcdef" and single.endswith("cdef")
+        many = corrupt("abcdef", random.Random(seed), burst=1.0)
+        assert len(many) != 6 or sum(a != b for a, b in zip(many, "abcdef")) >= 2
+    assert corrupt("h", ScriptedRandom([]), burst=0.0) == "g"
+    assert 0.1 <= burst_chance(0.5) < burst_chance(5) <= burst_chance(50) <= 0.4
+
+
+def test_typo_for_polish_letters_and_unknown_scripts():
+    wrong = {typo_for("ą", random.Random(seed)) for seed in range(40)}
+    assert "a" in wrong and wrong <= set("aqsz")
+    assert {typo_for("Ł", random.Random(seed)) for seed in range(40)} <= set("LKO")
+    assert typo_for("ж", random.Random(0)) is None
+    assert typo_for("7", random.Random(0)) is None
+
+
+def test_cancel_during_a_correction(sender):
+    from conftest import InstantControl
+
+    class Impatient(InstantControl):
+        def wait(self, seconds):
+            if len(self.waits) >= 3:
+                self.cancel()
+            return super().wait(seconds)
+
+    rng = ScriptedRandom([0.0, 0.9, 0.0])
+    assert TypingJob("hello world", settings(char_delay_ms=10, typo_pct=50), sender, Impatient(), rng=rng).run() is False
+    assert len(sender.ops) <= 5
 
 
 def test_instant_mode_pastes_lines_and_restores_clipboard(control):
@@ -149,3 +257,5 @@ def test_estimate_seconds():
     assert estimate_seconds("abcde", settings(char_delay_ms=100)) == pytest.approx(0.5)
     assert estimate_seconds("a\nb", settings(char_delay_ms=100, newline_pause_ms=1000)) == pytest.approx(1.3)
     assert estimate_seconds("x", settings(instant=True)) > 0
+    plain = estimate_seconds("hello world", settings(char_delay_ms=100))
+    assert estimate_seconds("hello world", settings(char_delay_ms=100, typo_pct=10)) > plain

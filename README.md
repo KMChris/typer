@@ -9,7 +9,8 @@ frontend rendered by pywebview (Edge WebView2).
 - **Target window**: Typer remembers the last active window (the one that was in front before) or uses a window
   chosen from a list. Before it starts, it activates that window and counts down (3 s by default).
 - **Timing**: delay between characters with randomness, extra pauses after a word, punctuation and a new line,
-  optional "human" typos corrected with Backspace, instant mode (lines pasted through the clipboard).
+  optional "human" typos (neighbouring key, swapped letters, missing AltGr; noticed at once or a few characters
+  later and corrected with Backspace, sometimes several in a row), instant mode (lines pasted through the clipboard).
 - **Keys**: new line as Enter, Shift+Enter, Ctrl+Enter or skipped; a key at the end (e.g. Enter to send a
   message); key-code compatibility mode for games, VM consoles and remote desktop.
 - **Fragments and position**: the text can be split into fragments (whole text, lines or paragraphs). Typer keeps
