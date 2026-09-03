@@ -278,8 +278,9 @@ class Api:
         return RunPlan.from_dict(data)
 
     def _start_from_hotkey(self, mode: str) -> None:
+        # The countdown from the plan applies here too; only the target changes, since the
+        # user pressed the key inside the window they want to type into.
         plan = self._current_plan()
-        plan.countdown_s = 0
         plan.target = Target(mode="foreground")
         try:
             self._session.start_typing(plan, self._rows(), mode)
