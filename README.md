@@ -21,10 +21,10 @@ frontend rendered by pywebview (Edge WebView2).
   `{rand:a|b|c}`, `{uuid}`. `{{` and `}}` produce literal braces.
 - **Macros**: sequences of text, key combinations, pauses, mouse moves, clicks, drags and scrolling, and window
   activation. Recording from the keyboard and mouse, step-by-step editing, a global hotkey for every macro.
-- **Presets**: text together with its settings, JSON import and export.
-- **Global hotkeys** (function keys by default, because Alt combinations collide with overlays such as the
-  NVIDIA App): `F7` start in the active window / pause, `F5` stop and rewind, `F6` previous fragment, `F8` next
-  fragment, `F9` record a macro. While a job runs, `Esc` stops it too. Everything can be changed in the settings.
+- **Presets**: text together with its settings, full-window preview on click, JSON import and export.
+- **Global hotkeys** (function keys by default): `F7` start in the active window / pause, `F5` stop and rewind,
+  `F6` previous fragment, `F8` next fragment, `F9` record a macro. While a job runs, `Esc` stops it too. Everything
+  can be changed in the settings.
 - Light and dark theme, Polish and English, the window title bar painted in the app colours.
 
 ## Running from source

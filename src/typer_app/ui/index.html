@@ -238,8 +238,10 @@
     <!-- ===================== MACROS ===================== -->
     <section class="view" id="view-macros">
       <header class="topbar">
-        <div class="titles"><h2 data-i18n="macros.title">Makra</h2><p data-i18n="macros.subtitle"></p></div>
-        <button class="btn primary" id="macro-new"><svg><use href="#i-plus"/></svg><span data-i18n="macros.new">Nowe makro</span></button>
+        <div class="titles"><h2 data-i18n="macros.title">Makra</h2></div>
+        <div class="topbar-actions">
+          <button class="btn primary" id="macro-new"><svg><use href="#i-plus"/></svg><span data-i18n="macros.new">Nowe makro</span></button>
+        </div>
       </header>
       <div class="macros-grid">
         <div class="card list" id="macro-list"></div>
@@ -289,17 +291,33 @@
 
     <!-- ===================== PRESETS ===================== -->
     <section class="view" id="view-presets">
-      <header class="topbar">
-        <div class="titles"><h2 data-i18n="presets.title">Presety</h2><p data-i18n="presets.subtitle"></p></div>
-        <div class="topbar-actions">
-          <button class="btn" id="preset-import"><svg><use href="#i-upload"/></svg><span data-i18n="presets.import"></span></button>
-          <button class="btn" id="preset-export"><svg><use href="#i-download"/></svg><span data-i18n="presets.export"></span></button>
-          <button class="btn primary" id="preset-save"><svg><use href="#i-bookmark"/></svg><span data-i18n="presets.save_current"></span></button>
+      <div class="subview" id="preset-browser">
+        <header class="topbar">
+          <div class="titles"><h2 data-i18n="presets.title">Presety</h2></div>
+          <div class="topbar-actions">
+            <button class="btn" id="preset-import"><svg><use href="#i-upload"/></svg><span data-i18n="presets.import"></span></button>
+            <button class="btn" id="preset-export"><svg><use href="#i-download"/></svg><span data-i18n="presets.export"></span></button>
+            <button class="btn primary" id="preset-save"><svg><use href="#i-bookmark"/></svg><span data-i18n="presets.save_current"></span></button>
+          </div>
+        </header>
+        <div class="scroll">
+          <div class="empty" id="preset-empty"><svg><use href="#i-bookmark"/></svg><p data-i18n="presets.empty"></p></div>
+          <div class="preset-grid" id="preset-grid"></div>
         </div>
-      </header>
-      <div class="scroll">
-        <div class="empty" id="preset-empty"><svg><use href="#i-bookmark"/></svg><p data-i18n="presets.empty"></p></div>
-        <div class="preset-grid" id="preset-grid"></div>
+      </div>
+      <div class="subview" id="preset-detail" hidden>
+        <header class="topbar">
+          <button class="icon-btn" id="preset-back" data-i18n-title="presets.back"><svg><use href="#i-left"/></svg></button>
+          <div class="titles"><h2 id="preset-detail-name"></h2></div>
+          <div class="topbar-actions">
+            <button class="btn danger-ghost" id="preset-detail-delete"><svg><use href="#i-trash"/></svg><span data-i18n="presets.delete">Usuń</span></button>
+            <button class="btn primary" id="preset-detail-load"><svg><use href="#i-download"/></svg><span data-i18n="presets.load">Wczytaj</span></button>
+          </div>
+        </header>
+        <div class="preset-detail-body">
+          <div class="preset-meta" id="preset-detail-meta"></div>
+          <div class="card preset-text"><pre id="preset-detail-text"></pre></div>
+        </div>
       </div>
     </section>
 
@@ -339,7 +357,7 @@
           <label class="switch">
             <input type="checkbox" id="escape-stops">
             <span class="switch-track"></span>
-            <span class="switch-label"><span data-i18n="settings.escape_stops"></span><small data-i18n="settings.escape_stops_hint"></small></span>
+            <span class="switch-label"><span data-i18n="settings.escape_stops"></span></span>
           </label>
         </div>
         <div class="card">

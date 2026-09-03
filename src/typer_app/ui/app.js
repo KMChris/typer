@@ -587,6 +587,36 @@
   };
 
   // ------------------------------------------------------------------ presets
+  const NEWLINE_LABELS = { enter: 'Enter', shift_enter: 'Shift+Enter', ctrl_enter: 'Ctrl+Enter', none: '' };
+  let openPreset = null;                // preset shown in the full-window preview
+
+  function presetBadges(preset) {
+    const plan = preset.plan || {};
+    const settings = plan.settings || {};
+    const badges = [t('presets.chars', { count: (preset.text || '').length })];
+    badges.push(settings.instant ? t('presets.mode.instant') : t('presets.mode.delay', { ms: Math.round(settings.char_delay_ms ?? 30) }));
+    if (!settings.instant && settings.jitter_pct > 0) badges.push(`±${settings.jitter_pct}%`);
+    if (!settings.instant && settings.typo_pct > 0) badges.push(t('presets.typos', { pct: settings.typo_pct }));
+    if (NEWLINE_LABELS[settings.newline_mode]) badges.push(NEWLINE_LABELS[settings.newline_mode]);
+    if (settings.final_key) badges.push(t('presets.final', { key: formatCombo(settings.final_key) }));
+    if (settings.input_method === 'keys') badges.push(t('keys.compat'));
+    if (plan.split && plan.split !== 'whole') badges.push(t('presets.split', { mode: t('split.' + plan.split) }));
+    if (plan.use_csv_rows) badges.push(t('csv.use_rows'));
+    else if (plan.repeat_count > 1) badges.push(t('presets.repeat', { count: plan.repeat_count, ms: plan.repeat_interval_ms ?? 0 }));
+    badges.push(t('presets.countdown', { s: plan.countdown_s ?? 3 }));
+    return badges;
+  }
+
+  function addBadges(container, texts) {
+    container.innerHTML = '';
+    for (const text of texts) {
+      const badge = document.createElement('span');
+      badge.className = 'badge';
+      badge.textContent = text;
+      container.appendChild(badge);
+    }
+  }
+
   function renderPresets() {
     const grid = $('#preset-grid');
     grid.innerHTML = '';
@@ -594,13 +624,12 @@
     for (const preset of state.presets) {
       const card = document.createElement('div');
       card.className = 'card preset';
-      const settings = (preset.plan && preset.plan.settings) || {};
-      const mode = settings.instant ? t('presets.mode.instant') : t('presets.mode.delay', { ms: Math.round(settings.char_delay_ms ?? 30) });
-      const newline = { enter: 'Enter', shift_enter: 'Shift+Enter', ctrl_enter: 'Ctrl+Enter', none: '' }[settings.newline_mode] || '';
+      card.tabIndex = 0;
+      card.title = t('presets.open');
       card.innerHTML = `
         <div class="preset-head"><svg><use href="#i-bookmark"/></svg><strong></strong></div>
         <div class="preset-snippet"></div>
-        <div class="preset-meta"><span class="badge"></span><span class="badge"></span><span class="badge nl" hidden></span></div>
+        <div class="preset-meta"></div>
         <div class="preset-actions">
           <button class="btn small primary act-load"><svg><use href="#i-download"/></svg><span>${t('presets.load')}</span></button>
           <span class="grow"></span>
@@ -608,18 +637,33 @@
         </div>`;
       card.querySelector('strong').textContent = preset.name;
       card.querySelector('.preset-snippet').textContent = (preset.text || '').slice(0, 160);
-      const badges = card.querySelectorAll('.badge');
-      badges[0].textContent = t('presets.chars', { count: (preset.text || '').length });
-      badges[1].textContent = mode;
-      if (newline) { badges[2].textContent = newline; badges[2].hidden = false; }
+      addBadges(card.querySelector('.preset-meta'), presetBadges(preset).slice(0, 3));
+      card.addEventListener('click', e => { if (!e.target.closest('button')) showPreset(preset); });
+      card.addEventListener('keydown', e => { if (e.target === card && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); showPreset(preset); } });
       card.querySelector('.act-load').addEventListener('click', () => loadPreset(preset));
-      card.querySelector('.act-delete').addEventListener('click', async () => {
-        if (!(await confirmDialog(t('presets.confirm_delete', { name: preset.name }), '', true))) return;
-        const result = await call('delete_preset', preset.id);
-        if (result.ok) { state.presets = result.presets; renderPresets(); toast('info', t('toast.preset_deleted')); }
-      });
+      card.querySelector('.act-delete').addEventListener('click', () => deletePreset(preset));
       grid.appendChild(card);
     }
+    if (openPreset) {
+      // Keep the preview in sync after an import, a deletion or a language change.
+      openPreset = state.presets.find(p => p.id === openPreset.id) || null;
+      if (openPreset) showPreset(openPreset); else closePreset();
+    }
+  }
+
+  function showPreset(preset) {
+    openPreset = preset;
+    $('#preset-detail-name').textContent = preset.name;
+    addBadges($('#preset-detail-meta'), presetBadges(preset));
+    $('#preset-detail-text').textContent = preset.text || '';
+    $('#preset-browser').hidden = true;
+    $('#preset-detail').hidden = false;
+  }
+
+  function closePreset() {
+    openPreset = null;
+    $('#preset-detail').hidden = true;
+    $('#preset-browser').hidden = false;
   }
 
   function loadPreset(preset) {
@@ -632,8 +676,18 @@
     };
     applyPlan();
     saveDraft();
+    closePreset();
     showView('typer');
     toast('success', t('toast.preset_loaded', { name: preset.name }));
+  }
+
+  async function deletePreset(preset) {
+    if (!(await confirmDialog(t('presets.confirm_delete', { name: preset.name }), '', true))) return;
+    const result = await call('delete_preset', preset.id);
+    if (!result.ok) { reportFailure(result); return; }
+    state.presets = result.presets;
+    renderPresets();
+    toast('info', t('toast.preset_deleted'));
   }
 
   async function savePresetFromCurrent() {
@@ -744,16 +798,16 @@
       li.dataset.index = index;
       let fields = '';
       const num = (f, extra = '') => stepField(step, f, 'num', `type="number" ${extra}`);
-      const point = () => `<span class="hint">x</span>${num('x')}<span class="hint">y</span>${num('y')}<button class="btn small act-pick" type="button"><svg><use href="#i-crosshair"/></svg></button>`;
+      const point = () => `<span class="step-hint">x</span>${num('x')}<span class="step-hint">y</span>${num('y')}<button class="btn small act-pick" type="button"><svg><use href="#i-crosshair"/></svg></button>`;
       const buttonSelect = () => `<select class="input" data-field="button">${['left', 'right', 'middle'].map(b => `<option value="${b}" ${step.button === b ? 'selected' : ''}>${t('step.button.' + b)}</option>`).join('')}</select>`;
       switch (step.kind) {
         case 'text': fields = `<textarea class="input" data-field="text" rows="1" placeholder="${escapeHtml(t('step.text_placeholder'))}">${escapeHtml(step.text || '')}</textarea>`; break;
         case 'key': fields = `<input class="input hotkey-input" data-field="key" readonly placeholder="${escapeHtml(t('step.key_placeholder'))}" value="${escapeHtml(formatCombo(step.key))}">`; break;
-        case 'wait': fields = `${num('ms', 'min="0" step="50"')}<span class="hint">${t('units.ms')}</span>`; break;
+        case 'wait': fields = `${num('ms', 'min="0" step="50"')}<span class="step-hint">${t('units.ms')}</span>`; break;
         case 'mouse_move': fields = point(); break;
         case 'mouse_click': fields = `${point()}${buttonSelect()}<select class="input" data-field="count">${[1, 2, 3].map(c => `<option value="${c}" ${step.count === c ? 'selected' : ''}>${t('step.count.' + c)}</option>`).join('')}</select>`; break;
         case 'mouse_down': case 'mouse_up': fields = `${point()}${buttonSelect()}`; break;
-        case 'mouse_scroll': fields = `${point()}<span class="hint">dy</span>${num('dy', 'min="-100" max="100"')}<span class="hint">dx</span>${num('dx', 'min="-100" max="100"')}<span class="hint">${t('step.scroll_hint')}</span>`; break;
+        case 'mouse_scroll': fields = `${point()}<span class="step-hint">dy</span>${num('dy', 'min="-100" max="100"')}<span class="step-hint">dx</span>${num('dx', 'min="-100" max="100"')}<span class="step-hint">${t('step.scroll_hint')}</span>`; break;
         case 'focus': fields = `<input class="input" data-field="title" placeholder="${escapeHtml(t('step.title_placeholder'))}" value="${escapeHtml(step.title || '')}">`; break;
       }
       li.innerHTML = `
@@ -929,6 +983,9 @@
     $('#preset-save').addEventListener('click', savePresetFromCurrent);
     $('#preset-export').addEventListener('click', async () => { const r = await call('export_presets'); if (r.ok) toast('success', t('toast.presets_exported')); else reportFailure(r); });
     $('#preset-import').addEventListener('click', async () => { const r = await call('import_presets'); if (r.ok) { state.presets = r.presets; renderPresets(); toast('success', t('toast.presets_imported', { count: r.imported })); } else reportFailure(r); });
+    $('#preset-back').addEventListener('click', closePreset);
+    $('#preset-detail-load').addEventListener('click', () => { if (openPreset) loadPreset(openPreset); });
+    $('#preset-detail-delete').addEventListener('click', () => { if (openPreset) deletePreset(openPreset); });
 
     $('#macro-new').addEventListener('click', newMacro);
     $('#macro-name').addEventListener('input', markMacroDirty);
@@ -952,6 +1009,7 @@
 
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape' && state.session.state !== 'idle') call('stop');
+      else if (e.key === 'Escape' && openPreset && $('#view-presets').classList.contains('is-active')) closePreset();
     });
   }
 
