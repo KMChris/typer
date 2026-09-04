@@ -2,7 +2,9 @@
 
 Windows desktop app that types text into any window through simulated keyboard input: with human-like timing,
 Shift+Enter newlines, macros, presets and placeholders filled from a CSV file. Python backend, HTML/CSS/JS
-frontend rendered by pywebview (Edge WebView2).
+frontend rendered by pywebview (Edge WebView2). Published in the Microsoft Store as **Typer Macro**.
+
+![Typer: text with placeholders, CSV data and typing speed in one view](https://github.com/user-attachments/assets/9b24ac5d-70e1-4144-bb07-054d0b9ba4b7)
 
 ## Features
 
@@ -26,6 +28,8 @@ frontend rendered by pywebview (Edge WebView2).
   `F6` previous fragment, `F8` next fragment, `F9` record a macro. While a job runs, `Esc` stops it too. Everything
   can be changed in the settings.
 - Light and dark theme, Polish and English, the window title bar painted in the app colours.
+
+![Macro editor: steps such as window activation, clicks, text and key combinations](https://github.com/user-attachments/assets/886bbc38-96a7-4eab-bde0-60c63f7fda5b)
 
 ## Running from source
 
@@ -58,6 +62,18 @@ build.bat
 The script creates `.venv`, installs the dependencies, renders the icon, runs the tests and builds the
 `dist\Typer\` folder (PyInstaller `--onedir`). The executable is `dist\Typer\Typer.exe`.
 
+## Microsoft Store package (MSIX)
+
+```bat
+build_msix.bat
+```
+
+Builds the app like `build.bat`, renders the package assets (icons in every size), fills `tools\msix\AppxManifest.xml`
+with the identity from `tools\msix\identity.json` (values from Partner Center) and packs
+`dist\msix\Typer_1.0.0.0_x64.msix` with the Windows SDK tools. The Store screenshots and listing images come from
+`.venv\Scripts\python tools\store_screenshots.py` (output in `dist\store\`). The Partner Center texts are in
+`tools\store\`, the packaging and local test details in `tools\msix\README.md`.
+
 ## Data
 
 Settings, presets and macros are stored as JSON in `%APPDATA%\Typer`. If a `portable.txt` file exists next to
@@ -68,4 +84,6 @@ Settings, presets and macros are stored as JSON in `%APPDATA%\Typer`. If a `port
 - `src/typer_app/engine/`: the engine (SendInput, hotkeys, windows, templates, macros, session).
 - `src/typer_app/api.py`: the JS-Python bridge; `app.py`: the window and service start-up.
 - `src/typer_app/ui/`: the frontend (`index.html`, `app.css`, `app.js`, `i18n.js`).
-- `tools/`: `make_icon.py` (icon), `uicheck.py` (automated window check).
+- `tools/`: `make_icon.py` (icon), `uicheck.py` (automated window check), `make_msix.py` (MSIX package),
+  `make_store_assets.py` (package icons and Store images), `store_screenshots.py` (Store screenshots);
+  `tools/msix/`: manifest template and package identity; `tools/store/`: Store listing texts and the privacy policy.

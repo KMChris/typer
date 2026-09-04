@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Package manifest template. tools\make_msix.py fills in the placeholders from tools\msix\identity.json
+  and the app version, then copies it next to Typer.exe in the package layout.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap rescap">
+
+  <Identity Name="$identity_name" Publisher="$publisher" Version="$version" ProcessorArchitecture="x64" />
+
+  <!-- AppData writes of the packaged app are virtualized by Windows into the package's LocalCache folder.
+       Turning that off (desktop6:FileSystemWriteVirtualization) needs the restricted capability
+       unvirtualizedResources, which the Store grants only with a justification, so it is left at the default. -->
+  <Properties>
+    <DisplayName>$display_name</DisplayName>
+    <PublisherDisplayName>$publisher_display_name</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+    <Description>Types text into any window with a simulated keyboard: human-like timing, macros, presets, CSV placeholders and global hotkeys.</Description>
+  </Properties>
+
+  <Resources>
+    <Resource Language="pl-PL" />
+    <Resource Language="en-US" />
+  </Resources>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+
+  <Applications>
+    <Application Id="Typer" Executable="Typer.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="$display_name"
+        Description="Types text into any window with a simulated keyboard: human-like timing, macros, presets, CSV placeholders and global hotkeys."
+        BackgroundColor="#151827"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile
+          ShortName="$display_name"
+          Square71x71Logo="Assets\Square71x71Logo.png"
+          Wide310x150Logo="Assets\Wide310x150Logo.png"
+          Square310x310Logo="Assets\Square310x310Logo.png" />
+        <uap:SplashScreen Image="Assets\SplashScreen.png" BackgroundColor="#151827" />
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+</Package>
