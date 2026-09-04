@@ -138,5 +138,6 @@ folder is read-only.
 2. Product identity → `identity.json` → `build_msix.bat`.
 3. Submission: Pricing and availability (Free), Properties, Age ratings, Packages
    (`dist\msix\Typer_1.0.0.0_x64.msix`), Store listings for pl-PL and en-US (texts, screenshots and images from
-   `tools\store\` and `dist\store\`), Submission options (notes for certification from `tools\store\listing-pl.md`).
+   `tools\store\` and `dist\store\`), Submission options (justification for the `runFullTrust` capability, notes
+   for certification from `tools\store\listing-pl.md`).
 4. Submit to the Store; certification usually takes 1–3 business days.

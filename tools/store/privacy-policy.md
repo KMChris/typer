@@ -1,14 +1,11 @@
 # Privacy policy / Polityka prywatności
 
-Published at the privacy policy URL given in Partner Center (a GitHub Pages page or this file in the repository);
-both language versions on one page. Store name: Typer Macro; in-app name: Typer.
-
 ## Typer privacy policy
 
 Last updated: 4 September 2026
 
-Typer is a Windows application that types text with a simulated keyboard into the window chosen by the user and
-runs keyboard and mouse macros.
+Typer (published in the Microsoft Store as Typer Macro) is a Windows application that types text with a simulated
+keyboard into the window chosen by the user and runs keyboard and mouse macros.
 
 - Typer does not collect, store or transmit any personal data or usage data.
 - Typer does not connect to the internet, contains no telemetry, advertising or third-party services, and needs no
@@ -26,8 +23,8 @@ Privacy questions: https://github.com/KMChris/typer/issues
 
 Ostatnia aktualizacja: 4 września 2026
 
-Typer to aplikacja dla systemu Windows, która wpisuje tekst symulowaną klawiaturą w oknie wskazanym przez
-użytkownika i wykonuje makra klawiatury i myszy.
+Typer (w sklepie Microsoft Store: Typer Macro) to aplikacja dla systemu Windows, która wpisuje tekst symulowaną
+klawiaturą w oknie wskazanym przez użytkownika i wykonuje makra klawiatury i myszy.
 
 - Typer nie zbiera, nie przechowuje ani nie przesyła żadnych danych osobowych ani danych o użytkowaniu.
 - Typer nie łączy się z internetem, nie zawiera telemetrii, reklam ani usług zewnętrznych i nie wymaga konta.

@@ -16,12 +16,12 @@ after three months.
 | --- | --- |
 | Category | Productivity |
 | Secondary category | Utilities & tools |
-| Privacy: does the app access, collect or transmit personal information? | **No** |
-| Privacy policy URL | optional; text in `privacy-policy.md` (a GitHub Pages page or the file in the repository) |
-| Website | repository or project page URL |
-| Support contact info | e-mail address or the repository's issue tracker |
+| Privacy: does the app access, collect or transmit personal information? | **Yes**; Partner Center forces this answer for a package that declares `runFullTrust` and then requires a privacy policy URL |
+| Privacy policy URL | required; `https://github.com/KMChris/typer/blob/main/tools/store/privacy-policy.md` (text in `privacy-policy.md`) |
+| Website | `https://github.com/KMChris/typer` |
+| Support contact info | `https://github.com/KMChris/typer/issues` |
 | Display mode | unchecked |
-| Product declarations | unchecked |
+| Product declarations | Partner Center defaults; "record and broadcast clips" unchecked, because it applies to games only |
 | System requirements: minimum | OS: Windows 10 version 1809 (build 17763) or later, 64-bit · Keyboard: required · Memory: 4 GB |
 | System requirements: recommended | Windows 11 |
 
@@ -33,6 +33,10 @@ location sharing; no user-generated content, no communication. Expected result: 
 ## Pricing and availability
 
 Free · all markets · visibility: Public · release: as soon as it passes certification (or a manual date).
+
+The price is set in the Default market group: base price currency `PLN - Polska`, retail price `0`. Markets:
+"all markets worldwide" with the base price applied to future markets. Visibility: public audience, available
+and discoverable in the Store.
 
 ## Packages
 
@@ -140,7 +144,18 @@ the corresponding option is enabled.
 
 ## Submission options
 
+### Restricted capability · required
+
+The manifest declares `runFullTrust`, so the submission options page asks why the capability is needed. The
+answer describes the simulated keyboard and mouse input, the window list and foreground activation, the global
+hotkeys, the JSON files in AppData, the CSV files opened by the user and the clipboard use, and states that none
+of it is available to a sandboxed UWP app and that typing starts only after Start or a hotkey.
+
+Publishing hold: "publish this submission as soon as it passes certification".
+
 ### Notes for certification (English)
+
+Entered on the Additional testing info page, which the submission options page links to.
 
 ```
 Typer Macro is a Win32 desktop app (Python + WebView2) packaged as MSIX with the runFullTrust capability. It sends simulated keystrokes and mouse actions to the window the user chooses, like an auto-typer or macro tool. It never sends input on its own: typing starts only after the user presses Start or a global hotkey (F7 by default), after a visible 3-second countdown, and F5 or Esc stops it at any time.
